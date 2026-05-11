@@ -4,13 +4,13 @@
 
 We sequentially fine-tune `N=30` LLM members from a single
 [`deepseek-ai/deepseek-llm-7b-chat`](https://huggingface.co/deepseek-ai/deepseek-llm-7b-chat)
-backbone, regularizing each new member against the layer-wise linear CKA of
-all previous members. The recipe drives mean pairwise CKA across the
-ensemble from **0.846** (control) to **0.044** (CKA-penalty). A lightweight
-learned router on top of frozen BGE sentence embeddings then beats the
-best single 7B model by **+4.2 pp** average across MMLU, GSM8K, HumanEval,
-ARC-Easy, and ARC-Challenge while keeping inference cost at one 7B
-forward pass.
+backbone, regularizing each new member against the layer-wise linear CKA
+of all previous members. The recipe drives mean pairwise CKA across the
+ensemble from **0.846** (control) to **0.044** (CKA-penalty). A
+lightweight learned router on top of frozen BGE sentence embeddings then
+beats the best single 7B model by **+4.2 pp** average across MMLU, GSM8K,
+HumanEval, ARC-Easy, and ARC-Challenge while keeping inference cost at
+one 7B forward pass.
 
 ## Headline numbers
 
@@ -32,17 +32,17 @@ Pairwise CKA across the ensemble and MMLU oracle at k=30:
 ## Repo layout
 
 ```
-cka_ens/        the runnable Python package
-├── similarity/  linear CKA + COS² (NumPy / TensorFlow / PyTorch)
+cka_ens/        runnable Python package (PyTorch throughout)
+├── similarity/  linear CKA + COS² (NumPy reference)
 ├── llm/         sequential CKA-penalty trainer + router for DeepSeek-7B
-├── cifar/       CIFAR-10 pilot study (CNN ensemble)
+├── cifar/       CIFAR-10 pilot study (small CNN ensemble)
 └── tools/       Excel → CSV extractor
 
 data/           extracted result CSVs (CKA matrices + per-bench scaling + router)
-figs/           rendered figures (PDF) — produced by scripts/
+figs/           rendered figures (PDF) produced by scripts/
 scripts/        figure generators + one-off data tools
-notebooks/      walkthrough notebooks (CIFAR pilot, LLM walkthrough, router training)
-tests/          unit tests for the linear-CKA math and router features
+notebooks/      LLM walkthrough + Router.ipynb (the original BGE pipeline)
+tests/          unit tests for the linear-CKA math and data extraction
 ```
 
 ## Quickstart
@@ -51,20 +51,21 @@ tests/          unit tests for the linear-CKA math and router features
 uv venv .venv
 uv pip install -r requirements.txt
 make figs          # regenerate every figure from the CSVs in data/
-make test          # run the unit-test suite
+make test          # 23 unit tests
 ```
 
 ## Reproducing the LLM results
 
-The LLM pipeline lives in `cka_ens/llm/` and runs end-to-end given a GPU
-and the `[llm]` extra. All four stages are exposed as console entry
-points; see `notebooks/llm_walkthrough.ipynb` for a guided trace.
+The LLM pipeline is end-to-end runnable from
+[`deepseek-ai/deepseek-llm-7b-chat`](https://huggingface.co/deepseek-ai/deepseek-llm-7b-chat)
+given a GPU and the `[llm]` extra. All four stages are exposed as
+console entry points; see `notebooks/llm_walkthrough.ipynb` for a
+guided trace.
 
 ```bash
 uv pip install -e '.[llm]'
 
-# 1. Sequentially fine-tune 30 members from DeepSeek-7B-Chat under the
-#    CKA penalty. Member k uses members 0..k-1 as frozen anchors.
+# 1. Sequentially fine-tune 30 members. Member k uses members 0..k-1 as frozen anchors.
 for i in $(seq 0 29); do
   python -m cka_ens.llm.train --root ./members_cka --idx $i --mode cka --lambda 10.0
 done
@@ -74,8 +75,8 @@ for bench in mmlu gsm8k humaneval arc_challenge arc_easy gpqa; do
   python -m cka_ens.llm.evaluate --root ./members_cka --benchmark $bench
 done
 
-# 3. BGE-encode the prompts and pivot rewards into a router checkpoint.
-#    (See notebooks/Router.ipynb for the full pipeline.)
+# 3. BGE-encode the prompts and pivot rewards into a router checkpoint
+#    (see notebooks/Router.ipynb for the end-to-end script).
 jupyter nbconvert --to notebook --execute notebooks/Router.ipynb
 
 # 4. Train + evaluate the residual-MLP router.
@@ -85,16 +86,14 @@ python -m cka_ens.llm.router_evaluate --router router.pt --data router_data_chec
 
 Hyperparameter defaults match the values used to produce the headline
 table (Alpaca-2k slice, lr `2e-5`, batch=4, λ=10, 1 epoch per member;
-router top-K=3, τ anneal `2.0→0.3`, 50 epochs).
-
-> **Note.** The numbers above were produced by an earlier run of this
-> pipeline. The released code is a clean port; rerunning it should
-> recover these numbers up to seed noise.
+router top-K=3, τ anneal `2.0→0.3`, 50 epochs). LoRA fine-tuning is
+available via `--lora`.
 
 ## Reproducing the CIFAR-10 pilot (no GPU required)
 
-The CIFAR-10 ensemble runs on CPU in a few minutes and is the cheapest
-way to verify the recipe end-to-end on your own hardware.
+A small-CNN ensemble that mirrors the qualitative LLM result; runs on
+CPU in a few minutes. Same trainer shape as the LLM pipeline and shares
+the same `cka_ens.llm.penalty.linear_cka_torch` for the CKA computation.
 
 ```bash
 uv pip install -e '.[cifar]'
@@ -105,26 +104,26 @@ python -m cka_ens.cifar.evaluate weights_control weights_cka
 python -m cka_ens.cifar.router   --combined-probs combined_probs.npz
 ```
 
-The pilot mirrors the qualitative LLM result: control oracle saturates
-near 80% by k=5; the CKA penalty pushes the oracle past 87% at k=10.
+Control oracle saturates near 80% by k=5; the CKA penalty pushes the
+oracle past 87% at k=10.
 
 ## What's in the package
 
-`cka_ens.similarity` — three parallel implementations of linear CKA
-(NumPy reference, TensorFlow for the CIFAR pilot, PyTorch for the LLM
-trainer) plus the squared-cosine baseline. All three agree numerically
-within float32 tolerance (`tests/test_linear_cka.py`).
+`cka_ens.similarity` — NumPy reference for linear CKA + the squared-cosine
+baseline. Locked down by `tests/test_linear_cka.py` (invariants under
+permutation and orthogonal rotation; COS²'s failure mode).
 
 `cka_ens.llm` — `train.py` (sequential CKA-penalty trainer with
 forward-hook activation capture against frozen anchors), `penalty.py`
-(differentiable linear-CKA penalty), `hooks.py` (HuggingFace decoder
-hooks), `data.py` (Alpaca-2k loader with response-only loss masking),
-`evaluate.py` (per-member benchmark scorer), `router_train.py` and
-`router_evaluate.py` (BGE + residual-MLP router).
+(differentiable linear-CKA penalty in PyTorch), `hooks.py` (HuggingFace
+decoder hooks), `data.py` (Alpaca-2k loader with response-only loss
+masking), `evaluate.py` (per-member benchmark scorer), `router_train.py`
+and `router_evaluate.py` (BGE + residual-MLP router).
 
-`cka_ens.cifar` — small CNN ensemble pilot. Same training-loop shape as
-the LLM trainer; reads as a reference implementation that runs in
-minutes.
+`cka_ens.cifar` — `TinyCNN` (PyTorch, 4 hooked layers) + the same
+sequential trainer pattern as `cka_ens.llm`. Reads as a reference
+implementation that runs in minutes; ports of the original notebook
+that produced the appendix figure.
 
 ## Tests
 
@@ -135,8 +134,8 @@ make test
 23 tests covering: linear-CKA invariants (self-similarity, symmetry,
 orthogonal + scale invariance), the squared-cosine baseline's failure
 mode, router feature shapes, and data-extraction sanity (CKA matrices
-are symmetric, the penalty actually reduces pairwise CKA, oracle
-accuracy is non-decreasing in ensemble size).
+symmetric, the penalty actually reduces pairwise CKA, oracle accuracy
+non-decreasing in ensemble size).
 
 ## Citation
 
