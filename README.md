@@ -1,6 +1,11 @@
 # Representational Regularization for Diverse Large Language Model Ensembles
 
 > **Maxwell Fung** (UC Berkeley, `maxwellfung@berkeley.edu`) · **Emaan Heidari** (USC, `eheidari@usc.edu`) — equal contribution.
+> Paper: [emaanheidari.com/fpga.pdf](https://emaanheidari.com/fpga.pdf)
+
+![Pairwise linear CKA across 30 fine-tuned LLM members. Control: bright (mean 0.846). CKA penalty: dark (mean 0.044). COS² penalty: bright (mean 0.898).](figs/fig_cka_heatmaps.png)
+
+*Pairwise linear CKA across the 30 ensemble members. Control fine-tuning leaves all members representationally similar (mean off-diagonal 0.846); the CKA penalty drives that to 0.044 — a 19× reduction. The COS² penalty does not help.*
 
 We sequentially fine-tune `N=30` LLM members from a single
 [`deepseek-ai/deepseek-llm-7b-chat`](https://huggingface.co/deepseek-ai/deepseek-llm-7b-chat)
@@ -139,11 +144,14 @@ non-decreasing in ensemble size).
 
 ## Citation
 
+Paper: [emaanheidari.com/fpga.pdf](https://emaanheidari.com/fpga.pdf)
+
 ```bibtex
 @misc{fung2026repreg,
   title  = {Representational Regularization for Diverse Large Language Model Ensembles},
   author = {Maxwell Fung and Emaan Heidari},
   year   = {2026},
+  url    = {https://emaanheidari.com/fpga.pdf},
   note   = {Independent research preprint},
 }
 ```

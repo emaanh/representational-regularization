@@ -1,0 +1,38 @@
+cff-version: 1.2.0
+message: "If you use this work, please cite the manuscript below."
+title: "Representational Regularization for Diverse Large Language Model Ensembles"
+type: software
+authors:
+  - family-names: Fung
+    given-names: Maxwell
+    email: maxwellfung@berkeley.edu
+    affiliation: University of California, Berkeley
+  - family-names: Heidari
+    given-names: Emaan
+    email: eheidari@usc.edu
+    affiliation: University of Southern California
+date-released: 2026-05-11
+license: MIT
+repository-code: "https://github.com/emaanh/representational-regularization"
+keywords:
+  - large language models
+  - ensembles
+  - representational similarity
+  - centered kernel alignment
+  - llm routing
+  - diversity regularization
+preferred-citation:
+  type: generic
+  title: "Representational Regularization for Diverse Large Language Model Ensembles"
+  authors:
+    - family-names: Fung
+      given-names: Maxwell
+      email: maxwellfung@berkeley.edu
+      affiliation: University of California, Berkeley
+    - family-names: Heidari
+      given-names: Emaan
+      email: eheidari@usc.edu
+      affiliation: University of Southern California
+  year: 2026
+  url: "https://emaanheidari.com/fpga.pdf"
+  notes: "Independent research preprint."
