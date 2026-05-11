@@ -1,11 +1,11 @@
 # Representational Regularization for Diverse Large Language Model Ensembles
 
-> **Maxwell Fung** (UC Berkeley, `maxwellfung@berkeley.edu`) · **Emaan Heidari** (USC, `eheidari@usc.edu`) — equal contribution.
-> Paper: [emaanheidari.com/fpga.pdf](https://emaanheidari.com/fpga.pdf)
+> **Maxwell Fung** (UC Berkeley, `maxwellfung@berkeley.edu`) · **Emaan Heidari** (USC, `eheidari@usc.edu`). Equal contribution.
+> Paper: [emaanheidari.com/cka.pdf](https://emaanheidari.com/cka.pdf)
 
-![Pairwise linear CKA across 30 fine-tuned LLM members. Control: bright (mean 0.846). CKA penalty: dark (mean 0.044). COS² penalty: bright (mean 0.898).](figs/fig_cka_heatmaps.png)
+![Best single 7B (gray) vs our learned router (rose) vs oracle upper bound (green) on six benchmarks. Router beats best-single on every benchmark; gains in pp marked above each rose bar.](figs/fig_router_bars.png)
 
-*Pairwise linear CKA across the 30 ensemble members. Control fine-tuning leaves all members representationally similar (mean off-diagonal 0.846); the CKA penalty drives that to 0.044 — a 19× reduction. The COS² penalty does not help.*
+*Test accuracy on the router test split. Our learned router beats the best single 7B model on every benchmark while using exactly one 7B forward pass per query.*
 
 We sequentially fine-tune `N=30` LLM members from a single
 [`deepseek-ai/deepseek-llm-7b-chat`](https://huggingface.co/deepseek-ai/deepseek-llm-7b-chat)
@@ -114,21 +114,22 @@ oracle past 87% at k=10.
 
 ## What's in the package
 
-`cka_ens.similarity` — NumPy reference for linear CKA + the squared-cosine
-baseline. Locked down by `tests/test_linear_cka.py` (invariants under
-permutation and orthogonal rotation; COS²'s failure mode).
+`cka_ens.similarity`: NumPy reference for linear CKA plus the
+squared-cosine baseline. Locked down by `tests/test_linear_cka.py`
+(invariants under permutation and orthogonal rotation; COS²'s failure
+mode).
 
-`cka_ens.llm` — `train.py` (sequential CKA-penalty trainer with
+`cka_ens.llm`: `train.py` (sequential CKA-penalty trainer with
 forward-hook activation capture against frozen anchors), `penalty.py`
 (differentiable linear-CKA penalty in PyTorch), `hooks.py` (HuggingFace
 decoder hooks), `data.py` (Alpaca-2k loader with response-only loss
 masking), `evaluate.py` (per-member benchmark scorer), `router_train.py`
-and `router_evaluate.py` (BGE + residual-MLP router).
+and `router_evaluate.py` (BGE plus residual-MLP router).
 
-`cka_ens.cifar` — `TinyCNN` (PyTorch, 4 hooked layers) + the same
+`cka_ens.cifar`: `TinyCNN` (PyTorch, 4 hooked layers) plus the same
 sequential trainer pattern as `cka_ens.llm`. Reads as a reference
-implementation that runs in minutes; ports of the original notebook
-that produced the appendix figure.
+implementation that runs in minutes; a PyTorch port of the original
+notebook that produced the appendix figure.
 
 ## Tests
 
@@ -144,18 +145,18 @@ non-decreasing in ensemble size).
 
 ## Citation
 
-Paper: [emaanheidari.com/fpga.pdf](https://emaanheidari.com/fpga.pdf)
+Paper: [emaanheidari.com/cka.pdf](https://emaanheidari.com/cka.pdf)
 
 ```bibtex
 @misc{fung2026repreg,
   title  = {Representational Regularization for Diverse Large Language Model Ensembles},
   author = {Maxwell Fung and Emaan Heidari},
   year   = {2026},
-  url    = {https://emaanheidari.com/fpga.pdf},
+  url    = {https://emaanheidari.com/cka.pdf},
   note   = {Independent research preprint},
 }
 ```
 
 ## License
 
-MIT — see [`LICENSE`](LICENSE).
+MIT. See [`LICENSE`](LICENSE).
