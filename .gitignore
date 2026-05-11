@@ -1,0 +1,56 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+*.egg
+.eggs/
+build/
+dist/
+
+# Virtualenvs
+.venv/
+.python-version
+
+# CIFAR experiment artifacts
+weights/
+weights_control/
+weights_cka/
+weights_cos/
+activations/
+activations_control/
+activations_cka/
+activations_cos/
+cifar10_data/
+*.weights.h5
+*.npz
+
+# LaTeX build artifacts
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.toc
+paper/*.synctex.gz
+paper/*.fdb_latexmk
+paper/*.fls
+paper/sty/*.aux
+
+# Editor / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Jupyter
+.ipynb_checkpoints/
+
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Misc
+*.bak
+*.tmp

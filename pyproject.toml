@@ -1,0 +1,58 @@
+[project]
+name = "cka-ens"
+version = "0.1.0"
+description = "Sequential representational penalization for scalable LLM ensembles."
+authors = [
+  { name = "Maxwell Fung", email = "maxwellfung@berkeley.edu" },
+  { name = "Emaan Heidari", email = "eheidari@usc.edu" },
+]
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.10"
+
+dependencies = [
+  "matplotlib>=3.8",
+  "numpy>=1.26",
+  "pandas>=2.1",
+  "scipy>=1.11",
+  "seaborn>=0.13",
+  "openpyxl>=3.1",
+]
+
+[project.optional-dependencies]
+cifar = [
+  "torch>=2.2",
+  "torchvision>=0.17",
+  "scikit-learn>=1.4",
+]
+llm = [
+  "torch>=2.2",
+  "transformers>=4.42",
+  "datasets>=2.18",
+  "accelerate>=0.30",
+  "peft>=0.10",
+  "sentence-transformers>=2.7",
+  "scikit-learn>=1.4",
+]
+dev = [
+  "pytest>=8.0",
+  "pytest-cov>=4.1",
+]
+
+[project.scripts]
+cka-ens-cifar-train    = "cka_ens.cifar.train:main"
+cka-ens-cifar-eval     = "cka_ens.cifar.evaluate:main"
+cka-ens-cifar-router   = "cka_ens.cifar.router:main"
+cka-ens-llm-train      = "cka_ens.llm.train:main"
+cka-ens-llm-eval       = "cka_ens.llm.evaluate:main"
+cka-ens-llm-router-train = "cka_ens.llm.router_train:main"
+cka-ens-llm-router-eval  = "cka_ens.llm.router_evaluate:main"
+cka-ens-extract        = "cka_ens.tools.extract_xlsx:main"
+
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["cka_ens*"]

@@ -1,0 +1,8 @@
+# Core dependencies for figure generation and the workshop paper.
+# CIFAR pilot deps live in pyproject's [cifar] extra.
+matplotlib>=3.8
+numpy>=1.26
+pandas>=2.1
+scipy>=1.11
+seaborn>=0.13
+openpyxl>=3.1
